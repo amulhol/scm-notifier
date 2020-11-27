@@ -153,7 +153,7 @@ namespace pocorall.SCM_Notifier
             try
             {
                 ExecuteResult er = ExecuteProcess(Config.GitPath, path,"fetch --all --dry-run -v", true, true);
-                if (er.processError.Contains("Could not fetch"))
+                if (er.processError.Contains("Could not fetch") || er.processError.Contains(TimeOutMessage))
                 {
                     return ScmRepositoryStatus.Error;
                 }
@@ -198,7 +198,8 @@ namespace pocorall.SCM_Notifier
             {
                 string line;
                 while ((line = sr.ReadLine()) != null)
-                {  
+                {
+                    if (line.StartsWith("POST")) continue;
                     if (line.StartsWith("From")) continue;
                     if (!regexUpToDate.IsMatch(line)) return true;
                 }
@@ -213,10 +214,9 @@ namespace pocorall.SCM_Notifier
                 if (sp.repository.Path == Path)
                     return;
 
-            updateRevision = GetRepositoryCommitedRevision();
-            string arguments = String.Format("update --non-interactive \"{0}\"", Path);
-            ExecuteResult er = ExecuteProcess(Config.GitPath, null, arguments, false, false);
-            Config.WriteLog("Svn", arguments);
+            string arguments = "pull";
+            ExecuteResult er = ExecuteProcess(Config.GitPath, Path, arguments, false, false);
+            Config.WriteLog("Git", arguments);
             svnFolderProcesses.Add(new ScmRepositoryProcess(this, er.process, true));
         }
     }

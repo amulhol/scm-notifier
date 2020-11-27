@@ -71,7 +71,10 @@ namespace pocorall.SCM_Notifier
 		public bool Disable;
 		public PathType pathType;
 
-		public enum PathType {
+        protected const int ExecutionTimeOut = 600000; // 10 minutes
+        protected const string TimeOutMessage = "Process timed out";
+
+        public enum PathType {
 			Directory = 0,
 			HeadDirectory = 1,
 			File = 2
@@ -236,34 +239,65 @@ namespace pocorall.SCM_Notifier
 
             if (waitForExit)
             {
-                ArrayList lines = new ArrayList();
-                string line;
+                ArrayList outputLines = new ArrayList();
+                ArrayList errorLines = new ArrayList();
 
-                // Read output stream
-                while ((line = er.process.StandardOutput.ReadLine()) != null)
-                    lines.Add(line);
-
-                er.processOutput = String.Join("\n", (string[])lines.ToArray(typeof(string)));
-                lines.Clear();
-
-                // Read error stream
-                while ((line = er.process.StandardError.ReadLine()) != null)
-                    lines.Add(line);
-
-                er.processError = String.Join("\n", (string[])lines.ToArray(typeof(string)));
-                lines.Clear();
-
-                er.process.WaitForExit();
-
-                if (er.process.ExitCode != 0 && er.processError.Length > 0)
-                    OnErrorAdded(workingPath, er.processError);
-
-                if ((uint)er.process.ExitCode == 0xc0000142)		// STATUS_DLL_INIT_FAILED - Occurs when Windows shutdown in progress
+                using (AutoResetEvent outputWaitHandle = new AutoResetEvent(false))
+                using (AutoResetEvent errorWaitHandle = new AutoResetEvent(false))
                 {
-                    Application.Exit();
+                    er.process.OutputDataReceived += (sender, e) =>
+                    {
+                        if (e.Data == null && !outputWaitHandle.SafeWaitHandle.IsClosed)
+                        {
+                            outputWaitHandle.Set();
+                        }
+                        else
+                        {
+                            outputLines.Add(e.Data);
+                        }
+                    };
 
-                    if (Thread.CurrentThread == MainForm.statusThread)
-                        Thread.CurrentThread.Abort();
+                    er.process.ErrorDataReceived += (sender, e) =>
+                    {
+                        if (e.Data == null && !errorWaitHandle.SafeWaitHandle.IsClosed)
+                        {
+                            errorWaitHandle.Set();
+                        }
+                        else
+                        {
+                            errorLines.Add(e.Data);
+                        }
+                    };
+
+                    er.process.BeginOutputReadLine();
+                    er.process.BeginErrorReadLine();
+
+                    if (er.process.WaitForExit(ExecutionTimeOut) &&
+                        outputWaitHandle.WaitOne(ExecutionTimeOut) &&
+                        errorWaitHandle.WaitOne(ExecutionTimeOut))
+                    {
+                        // Process completed
+                        er.processOutput = String.Join("\n", (string[])outputLines.ToArray(typeof(string)));
+                        er.processError = String.Join("\n", (string[])errorLines.ToArray(typeof(string)));
+
+                        if (er.process.ExitCode != 0 && er.processError.Length > 0)
+                            OnErrorAdded(workingPath, er.processError);
+
+                        if ((uint)er.process.ExitCode == 0xc0000142)        // STATUS_DLL_INIT_FAILED - Occurs when Windows shutdown in progress
+                        {
+                            Application.Exit();
+
+                            if (Thread.CurrentThread == MainForm.statusThread)
+                                Thread.CurrentThread.Abort();
+                        }
+                    }
+                    else
+                    {
+                        // Timed out
+                        er.processOutput = "";
+                        er.processError = String.Join("\n", TimeOutMessage, string.Format("Process: {0}", executionFile), string.Format("Arguments: {0}", arguments));
+                        OnErrorAdded(workingPath, er.processError);
+                    }
                 }
 
                 backgroundProcess = null;
@@ -321,25 +355,49 @@ namespace pocorall.SCM_Notifier
 
         public static void ReadProcessOutput(ScmRepositoryProcess sfp)
         {
-            while (!sfp.process.StandardOutput.EndOfStream)
+            using (AutoResetEvent outputWaitHandle = new AutoResetEvent(false))
+            using (AutoResetEvent errorWaitHandle = new AutoResetEvent(false))
             {
-                var line = sfp.process.StandardOutput.ReadLine();
-                sfp.processOutput.Add(line);
-                if (sfp.isUpdateCommand && (line.Length > 1))
+                sfp.process.OutputDataReceived += (sender, e) =>
                 {
-                    if (line.StartsWith("C ") || line.StartsWith("svn"))
-                        sfp.updateError = true;
+                    if (e.Data == null && !outputWaitHandle.SafeWaitHandle.IsClosed)
+                    {
+                        outputWaitHandle.Set();
+                    }
+                    else
+                    {
+                        var line = e.Data;
+                        sfp.processOutput.Add(line);
+                        if (sfp.isUpdateCommand && (line.Length > 1))
+                        {
+                            if (line.StartsWith("C ") || line.StartsWith("svn"))
+                                sfp.updateError = true;
 
-                    else if (line.StartsWith("Skipped "))
-                        sfp.updateError = true;
-                }
-            }
+                            else if (line.StartsWith("Skipped "))
+                                sfp.updateError = true;
+                        }
+                    }
+                };
 
-            while (!sfp.process.StandardError.EndOfStream)
-            {
-                sfp.processOutput.Add(sfp.process.StandardError.ReadLine());
-                if (sfp.isUpdateCommand)
-                    sfp.updateError = true;
+                sfp.process.ErrorDataReceived += (sender, e) =>
+                {
+                    if (e.Data == null && !errorWaitHandle.SafeWaitHandle.IsClosed)
+                    {
+                        errorWaitHandle.Set();
+                    }
+                    else
+                    {
+                        sfp.processOutput.Add(e.Data);
+                        if (sfp.isUpdateCommand)
+                            sfp.updateError = true;
+                    }
+                };
+
+                sfp.process.BeginOutputReadLine();
+                sfp.process.BeginErrorReadLine();
+
+                outputWaitHandle.WaitOne(ExecutionTimeOut);
+                errorWaitHandle.WaitOne(ExecutionTimeOut);
             }
         }
 
