@@ -2,7 +2,7 @@ SCM Notifier is a tool to monitor Git and SVN repositories.
 
 This program is originally forked from SVN Notifier (http://svnnotifier.tigris.org/).
 
-Forked from https://github.com/pocorall/scm-notifier
+This is a fork from https://github.com/pocorall/scm-notifier
 
 ### [Download Latest Version - Nov 2020](https://github.com/pocorall/scm-notifier/releases/download/16.00.00/SCM_Notifier.exe)
 
