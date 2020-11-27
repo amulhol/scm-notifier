@@ -6,7 +6,7 @@ This program was originally forked from SVN Notifier (http://svnnotifier.tigris.
 
 This is a fork from https://github.com/pocorall/scm-notifier
 
-### [Download Latest Version - Nov 2020](https://github.com/amulhol/scm-notifier/releases/download/16.00.00/SCM_Notifier.exe)
+### [Download Latest Version - Nov 2020](https://github.com/amulhol/scm-notifier/releases/download/16.00.01/SCM_Notifier.exe)
 
 Latest Version resolves following:
 - Git repositories always reporting they need to be updated for Git 2.29.2
