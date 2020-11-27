@@ -22,7 +22,7 @@ Latest Version resolves following:
 * Microsoft Windows 2000/XP/Vista/7/8/8.1/10
 * Microsoft .NET Framework 4.5
 
-If you want to use Git only, let the configuration for path to Subversion and TortoiseSVN left blank.
+If you want to use Git only, the configuration for paths to Subversion and TortoiseSVN can be left blank.
 
 ### Build requirements
 * Microsoft Visual Studio 2010 or above, C#
