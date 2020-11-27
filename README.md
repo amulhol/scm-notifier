@@ -9,9 +9,9 @@ This is a fork from https://github.com/pocorall/scm-notifier
 ### [Download Latest Version - Nov 2020](https://github.com/pocorall/scm-notifier/releases/download/16.00.00/SCM_Notifier.exe)
 
 Latest Version resolves following:
-- Git repos always reporting need update for Git 2.29.2
-- Status checking thread hangs for Git repo with many branches
-- Update all not working for Git repos
+- Git repositories always reporting they need to be updated for Git 2.29.2
+- Status checking thread hangs for Git repository with many branches
+- Update all not working for Git repositories
 
 
 ### Run requirements
