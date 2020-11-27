@@ -217,7 +217,7 @@ namespace pocorall.SCM_Notifier
             string arguments = "pull";
             ExecuteResult er = ExecuteProcess(Config.GitPath, Path, arguments, false, false);
             Config.WriteLog("Git", arguments);
-            svnFolderProcesses.Add(new ScmRepositoryProcess(this, er.process, true));
+            svnFolderProcesses.Add(new ScmRepositoryProcess(this, er.process, false));
         }
     }
 }
