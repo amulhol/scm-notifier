@@ -1,15 +1,16 @@
-### This repository is no longer maintained
-
-Please consider to visit some of the fork of this repo, including:
-https://github.com/KohrAhr/scm-notifier
-
-----
-
 SCM Notifier is a tool to monitor Git and SVN repositories.
 
-This program is forked from SVN Notifier (http://svnnotifier.tigris.org/).
+This program is originally forked from SVN Notifier (http://svnnotifier.tigris.org/).
 
-### [Download Latest Version](https://github.com/pocorall/scm-notifier/releases/download/15.08.09/SCM_Notifier.exe)
+Forked from https://github.com/pocorall/scm-notifier
+
+### [Download Latest Version - Nov 2020](https://github.com/pocorall/scm-notifier/releases/download/16.00.00/SCM_Notifier.exe)
+
+Latest Version resolves following:
+- Git repos always reporting need update for Git 2.29.2
+- Status checking thread hangs for Git repo with many branches
+- Update all not working for Git repos
+
 
 ### Run requirements
 * Subversion (optional)
@@ -18,8 +19,6 @@ This program is forked from SVN Notifier (http://svnnotifier.tigris.org/).
 * TortoiseGit
 * Microsoft Windows 2000/XP/Vista/7/8/8.1/10
 * Microsoft .NET Framework 4.5
-
-Git update will **not work** properly if you do not [configure private key for TortoiseGit](http://serverfault.com/questions/194567/how-to-i-tell-git-for-windows-where-to-find-my-private-rsa-key).  
 
 If you want to use Git only, let the configuration for path to Subversion and TortoiseSVN left blank.
 
